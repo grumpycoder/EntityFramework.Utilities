@@ -40,9 +40,9 @@ namespace EntityFramework.Utilities
             }
             else
             {
-                updateSql = string.Join(" = ", update.Split(new string[]{" = "}, StringSplitOptions.RemoveEmptyEntries).Reverse());
+                updateSql = string.Join(" = ", update.Split(new string[] { " = " }, StringSplitOptions.RemoveEmptyEntries).Reverse());
             }
-           
+
 
             return string.Format("UPDATE [{0}].[{1}] SET {2} {3}", predicateQueryInfo.Schema, predicateQueryInfo.Table, updateSql, predicateQueryInfo.WhereSql);
         }
@@ -67,7 +67,7 @@ namespace EntityFramework.Utilities
                     {
                         copy.DestinationTableName = "[" + tableName + "]";
                     }
-                    
+
                     copy.NotifyAfter = 0;
 
                     foreach (var i in Enumerable.Range(0, reader.FieldCount))
@@ -99,16 +99,18 @@ namespace EntityFramework.Utilities
 
             var setters = string.Join(",", filtered.Where(c => !c.IsPrimaryKey).Select(c => "[" + c.NameInDatabase + "] = TEMP.[" + c.NameInDatabase + "]"));
             var pks = properties.Where(p => p.IsPrimaryKey).Select(x => "ORIG.[" + x.NameInDatabase + "] = TEMP.[" + x.NameInDatabase + "]");
-            var filter = string.Join(" and ",  pks);
-            var mergeCommand =  string.Format(@"UPDATE [{0}]
+            var filter = string.Join(" and ", pks);
+            var mergeCommand = string.Format(@"UPDATE [{0}].[{1}]
                 SET
-                    {3}
+                    {4}
                 FROM
-                    [{0}] ORIG
+                    [{0}].[{1}] ORIG
                 INNER JOIN
-                     [{1}] TEMP
+                     [{0}].[{2}] TEMP
                 ON 
-                    {2}", tableName, tempTableName, filter, setters);
+                    {3}", schema, tableName, tempTableName, filter, setters);
+
+
 
             using (var createCommand = new SqlCommand(str, con))
             using (var mCommand = new SqlCommand(mergeCommand, con))
@@ -120,7 +122,7 @@ namespace EntityFramework.Utilities
                 dCommand.ExecuteNonQuery();
             }
 
-            
+
         }
 
 
